@@ -13,6 +13,10 @@ import com.ipseorama.device.endpoints.PermittedEndpointMaker;
 import com.ipseorama.sctp.Association;
 import com.ipseorama.sctp.AssociationListener;
 import com.ipseorama.sctp.SCTPStream;
+import com.ipseorama.sctp.SCTPStreamListener;
+import com.ipseorama.sctp.StreamNumberInUseException;
+import com.ipseorama.sctp.messages.exceptions.SctpPacketFormatException;
+import com.ipseorama.sctp.messages.exceptions.UnreadyAssociationException;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -22,10 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -36,7 +37,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
-import org.bouncycastle.crypto.digests.SHA256Digest;
 
 /**
  *
@@ -108,21 +108,16 @@ public class ConnectToBone
             ic.setSession("test");
             ic.setMid("data");
 
-            JsonObject joff = ic.mkOffer();
-            sendJson(joff);
             ic.cleanup = new Runnable() {
                 public void run() {
                     Log.debug("Releasing port :");
                 }
             };
 
-            AssociationListener al = new PermittedEndpointMaker() {
-                @Override
-                public void onDisAssociated(Association a) {
-                    Log.debug("Disassociated");
-                }
-            };
+            AssociationListener al = new BoneAss();
             ic.setAssociationListener(al);
+            JsonObject joff = ic.mkOffer();
+            sendJson(joff);
         } catch (Exception ex) {
             Log.debug("failed to find 'bone' " + ex);
             ex.printStackTrace();
@@ -215,7 +210,7 @@ public class ConnectToBone
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        String destUri = "wss://lookafar.westhawk.co.uk/websocket/?finger=";
+        String destUri = "ws://localhost:9000/websocket/?finger=";
         if (args.length > 0) {
             destUri = args[0];
         }
