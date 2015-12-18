@@ -95,7 +95,7 @@ public class ConnectToBone
             Log.debug("Got connect: " + websocket.getURI().toASCIIString());
             cert.listFriends();
 
-            final String far = cert.getFriendPrint("bone");
+            final String far = cert.getFriendPrint("master");
             short port = (short) (10000 + (r.nextInt() % 5000));
             Log.debug("Allocating port :" + port);
 
@@ -105,7 +105,7 @@ public class ConnectToBone
                     return super.mkOffer();
                 }
             };
-            ic.setSession("test");
+            ic.setSession("new");
             ic.setMid("data");
 
             ic.cleanup = new Runnable() {
@@ -221,6 +221,7 @@ public class ConnectToBone
 
             try {
                 CertHolder c = new JksCertMaker();
+                ((JksCertMaker) c).listFriends();
                 String myfinger = c.getPrint(false);
                 destUri = destUri.concat(myfinger);
                 Log.debug("my finger is :" + myfinger);

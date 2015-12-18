@@ -37,7 +37,7 @@ class BoneAss implements AssociationListener {
     public void onAssociated(Association asctn) {
         try {
 
-            SCTPStream st = asctn.mkStream(1000, "AIN1");
+            SCTPStream st = asctn.mkStream("AIN1");
             SCTPStreamListener li = new SCTPStreamListener() {
                 @Override
                 public void onMessage(SCTPStream stream, String string) {
