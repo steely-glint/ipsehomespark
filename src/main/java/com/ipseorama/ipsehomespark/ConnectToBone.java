@@ -91,7 +91,7 @@ public class ConnectToBone
             Log.debug("Got connect: " + websocket.getURI().toASCIIString());
             cert.listFriends();
 
-            final String far = cert.getFriendPrint("master");
+            final String far = cert.getFriendPrint("bone");
             short port = (short) (10000 + (r.nextInt() % 5000));
             Log.debug("Allocating port :" + port);
 
@@ -110,7 +110,7 @@ public class ConnectToBone
                 }
             };
 
-            AssociationListener al = new AssociationListener() {
+            AssociationListener al = new BoneAss(); /*new AssociationListener() {
 
                 @Override
                 public void onAssociated(Association a) {
@@ -146,8 +146,13 @@ public class ConnectToBone
 
                     };
                     s.setSCTPStreamListener(li);
+                    try {
+                        s.send("Start");
+                    } catch (Exception ex) {
+                        Log.error(ex.getMessage());
+                    }
                 }
-            };
+            };*/
             ic.setAssociationListener(al);
             JsonObject joff = ic.mkOffer();
             sendJson(joff);
