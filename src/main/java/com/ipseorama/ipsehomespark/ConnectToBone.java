@@ -9,7 +9,10 @@ import com.ipseorama.base.certHolders.CertHolder;
 import com.ipseorama.base.certHolders.JksCertMaker;
 import com.ipseorama.base.dataChannel.CandidateSender;
 import com.ipseorama.base.dataChannel.IceConnectJSON;
+import com.ipseorama.sctp.Association;
 import com.ipseorama.sctp.AssociationListener;
+import com.ipseorama.sctp.SCTPStream;
+import com.ipseorama.sctp.SCTPStreamListener;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -24,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -105,7 +110,44 @@ public class ConnectToBone
                 }
             };
 
-            AssociationListener al = new BoneAss();
+            AssociationListener al = new AssociationListener() {
+
+                @Override
+                public void onAssociated(Association a) {
+                    Log.debug("associated! ");
+                    try {
+                        SCTPStream s = a.mkStream("test");
+                    } catch (Exception ex) {
+                        Log.error(ex.toString());
+                        ex.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onDisAssociated(Association a) {
+                    Log.debug("disassociated! ");
+                }
+
+                @Override
+                public void onStream(SCTPStream s) {
+                    Log.debug("new stream  " + s.getLabel());
+                    SCTPStreamListener li = new SCTPStreamListener() {
+
+                        @Override
+                        public void onMessage(SCTPStream s, String message) {
+                            Log.debug("on message stream  " + s.getLabel() + " message " + message);
+                            try {
+                                s.send(message + " echo!");
+                            } catch (Exception ex) {
+                                Log.error(ex.toString());
+                                ex.printStackTrace();
+                            }
+                        }
+
+                    };
+                    s.setSCTPStreamListener(li);
+                }
+            };
             ic.setAssociationListener(al);
             JsonObject joff = ic.mkOffer();
             sendJson(joff);
